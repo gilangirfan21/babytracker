@@ -4,17 +4,27 @@ const form = document.getElementById('measurement-form');
 const weekSelect = document.getElementById('gestational_week');
 const dateInput = document.getElementById('measurement_date');
 const metricFields = document.getElementById('metric-fields');
+const sexSelect = document.getElementById('fetal_sex');
 const statusBar = document.getElementById('status-bar');
 const historyList = document.getElementById('history-list');
 const submitButton = form.querySelector('button[type="submit"]');
 
 function buildWeekOptions() {
-  for (let week = 12; week <= 40; week++) {
+  for (let week = WEEK_MIN; week <= WEEK_MAX; week++) {
     const option = document.createElement('option');
     option.value = week;
     option.textContent = `Minggu ke-${week}`;
     weekSelect.appendChild(option);
   }
+}
+
+function buildSexOptions() {
+  Object.entries(FETAL_SEX_OPTIONS).forEach(([value, label]) => {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = label;
+    sexSelect.appendChild(option);
+  });
 }
 
 function buildMetricFields() {
@@ -72,10 +82,16 @@ function renderAssessment(assessments) {
             <p class="text-sm text-neutral-200">
               ${a.label} <span class="text-neutral-500">(${a.abbr})</span>
             </p>
-            <p class="text-xs text-neutral-600">${a.originalName}</p>
+            <p class="text-xs text-neutral-600">
+              ${a.originalName}${
+                a.sexApplied && a.sexApplied !== 'unknown'
+                  ? ` &middot; tabel ${FETAL_SEX_OPTIONS[a.sexApplied].toLowerCase()}`
+                  : ''
+              }
+            </p>
             <p class="mt-1 text-xs text-neutral-500">
-              ${a.value} ${a.unit}
-              &middot; normal ${a.band.low}&ndash;${a.band.high}
+              <span class="text-neutral-300">${a.value} ${a.unit}</span>
+              &middot; p10&ndash;p90: ${a.band.low}&ndash;${a.band.high}
               &middot; median ${a.band.median}
               (${a.diffFromMedian >= 0 ? '+' : ''}${a.diffFromMedian}%)
             </p>
@@ -104,7 +120,14 @@ function renderHistory(rows) {
         <header class="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h3 class="text-lg font-medium text-white">Minggu ke-${row.gestational_week}</h3>
-            <p class="text-xs text-neutral-500">${formatDate(row.measurement_date)}</p>
+            <p class="text-xs text-neutral-500">
+              ${formatDate(row.measurement_date)}
+              ${
+                row.fetal_sex && row.fetal_sex !== 'unknown'
+                  ? ` &middot; ${FETAL_SEX_OPTIONS[row.fetal_sex]}`
+                  : ''
+              }
+            </p>
           </div>
           <div class="flex items-center gap-3">
             ${
@@ -165,6 +188,7 @@ async function handleSubmit(event) {
   const payload = {
     gestational_week: Number(formData.get('gestational_week')),
     measurement_date: formData.get('measurement_date'),
+    fetal_sex: formData.get('fetal_sex') || 'unknown',
     notes: formData.get('notes')?.trim() || null,
   };
 
@@ -212,6 +236,7 @@ async function handleDelete(event) {
 }
 
 buildWeekOptions();
+buildSexOptions();
 buildMetricFields();
 weekSelect.value = 20;
 dateInput.value = new Date().toISOString().slice(0, 10);

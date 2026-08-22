@@ -49,6 +49,17 @@
               class="mt-2 w-full rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-2.5 text-neutral-100 outline-none transition focus:border-orange-500"
             />
           </label>
+
+          <label class="block sm:col-span-2">
+            <span class="text-sm text-neutral-400">Jenis kelamin janin</span>
+            <span class="mt-0.5 block text-xs text-neutral-600">
+              Janin laki-laki 3,5&ndash;4,5% lebih berat &mdash; rentang berat menyesuaikan
+            </span>
+            <select
+              name="fetal_sex" id="fetal_sex"
+              class="mt-2 w-full rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-2.5 text-neutral-100 outline-none transition focus:border-orange-500"
+            ></select>
+          </label>
         </div>
 
         <div id="metric-fields" class="grid gap-5 sm:grid-cols-2"></div>
@@ -80,13 +91,33 @@
     </section>
 
     <footer class="mt-16 border-t border-neutral-800 pt-6">
-      <p class="text-xs leading-relaxed text-neutral-600">
-        Rentang referensi memakai tabel persentil Hadlock (berat janin) dan nilai
-        median biometri janin (HC, AC, FL). Hasil di sini bersifat indikatif dan
-        <span class="text-neutral-500">bukan diagnosis medis</span> &mdash;
-        interpretasi sebenarnya perlu mempertimbangkan tren antar kunjungan dan
-        riwayat kehamilan. Selalu konsultasikan hasil USG dengan dokter atau bidan.
-      </p>
+      <div class="space-y-3 text-xs leading-relaxed text-neutral-600">
+        <p>
+          <span class="text-neutral-500">Sumber referensi:</span>
+          WHO Fetal Growth Charts &mdash; Kiserud T, dkk.
+          <em>A Multinational Longitudinal Study of Ultrasound Biometric Measurements
+          and Estimated Fetal Weight</em>, PLOS Medicine 2017;14(1):e1002220.
+          Rentang normal memakai persentil ke-10 sampai ke-90.
+          <a
+            href="https://doi.org/10.1371/journal.pmed.1002220"
+            target="_blank" rel="noopener"
+            class="text-neutral-500 underline underline-offset-2 transition hover:text-orange-500"
+          >Lihat publikasi</a>
+        </p>
+        <p>
+          <span class="text-neutral-500">Perlu diingat:</span>
+          WHO menemukan pertumbuhan janin berbeda signifikan antar negara &mdash;
+          median berat lahir berkisar dari 2.975 g (India) sampai 3.575 g (Norwegia)
+          &mdash; dan menyatakan kurva ini mungkin perlu disesuaikan untuk penggunaan
+          klinis lokal. Indonesia tidak termasuk 10 negara dalam studi tersebut.
+        </p>
+        <p>
+          Hasil di sini bersifat indikatif dan
+          <span class="text-neutral-500">bukan diagnosis medis</span>. Interpretasi
+          sebenarnya perlu mempertimbangkan tren antar kunjungan dan riwayat kehamilan.
+          Selalu konsultasikan hasil USG dengan dokter atau bidan.
+        </p>
+      </div>
     </footer>
   </div>
 
