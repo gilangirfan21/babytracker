@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pantau Tumbuh Kembang Janin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-neutral-950 text-neutral-100">
+  <div class="mx-auto max-w-3xl px-6 py-10">
+    <nav class="mb-12 flex items-center justify-between">
+      <a href="index.html" class="text-sm font-medium tracking-widest text-neutral-400 transition hover:text-orange-500">
+        BRAND
+      </a>
+      <span class="text-sm font-medium text-orange-500">USG Tracker</span>
+    </nav>
+
+    <header class="mb-10">
+      <p class="mb-3 text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
+        Tracker
+      </p>
+      <h1 class="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+        Tumbuh kembang janin
+      </h1>
+      <p class="mt-4 text-neutral-400">
+        Catat hasil USG tiap kunjungan, lalu bandingkan dengan rentang referensi
+        per usia kehamilan.
+      </p>
+    </header>
+
+    <section class="mb-12 rounded-xl border border-neutral-800 p-6">
+      <h2 class="mb-6 text-lg font-medium text-white">Tambah pemeriksaan</h2>
+
+      <form id="measurement-form" class="space-y-5">
+        <div class="grid gap-5 sm:grid-cols-2">
+          <label class="block">
+            <span class="text-sm text-neutral-400">Usia kehamilan</span>
+            <select
+              name="gestational_week" id="gestational_week" required
+              class="mt-2 w-full rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-2.5 text-neutral-100 outline-none transition focus:border-orange-500"
+            ></select>
+          </label>
+
+          <label class="block">
+            <span class="text-sm text-neutral-400">Tanggal pemeriksaan</span>
+            <input
+              type="date" name="measurement_date" id="measurement_date" required
+              class="mt-2 w-full rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-2.5 text-neutral-100 outline-none transition focus:border-orange-500"
+            />
+          </label>
+        </div>
+
+        <div id="metric-fields" class="grid gap-5 sm:grid-cols-2"></div>
+
+        <label class="block">
+          <span class="text-sm text-neutral-400">Catatan <span class="text-neutral-600">(opsional)</span></span>
+          <textarea
+            name="notes" rows="2"
+            placeholder="Catatan dari dokter, keluhan, dll."
+            class="mt-2 w-full resize-none rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-2.5 text-neutral-100 placeholder-neutral-600 outline-none transition focus:border-orange-500"
+          ></textarea>
+        </label>
+
+        <div class="flex flex-wrap items-center gap-4 pt-1">
+          <button
+            type="submit"
+            class="rounded-full bg-orange-500 px-6 py-2.5 text-sm font-medium text-neutral-950 transition hover:bg-orange-400 disabled:opacity-50"
+          >
+            Simpan data
+          </button>
+          <p id="status-bar" class="text-sm text-neutral-400"></p>
+        </div>
+      </form>
+    </section>
+
+    <section>
+      <h2 class="mb-6 text-lg font-medium text-white">Riwayat</h2>
+      <div id="history-list" class="space-y-4"></div>
+    </section>
+
+    <footer class="mt-16 border-t border-neutral-800 pt-6">
+      <p class="text-xs leading-relaxed text-neutral-600">
+        Rentang referensi memakai tabel persentil Hadlock (berat janin) dan nilai
+        median biometri janin (HC, AC, FL). Hasil di sini bersifat indikatif dan
+        <span class="text-neutral-500">bukan diagnosis medis</span> &mdash;
+        interpretasi sebenarnya perlu mempertimbangkan tren antar kunjungan dan
+        riwayat kehamilan. Selalu konsultasikan hasil USG dengan dokter atau bidan.
+      </p>
+    </footer>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/growth-reference.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
