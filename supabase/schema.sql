@@ -4,7 +4,11 @@
 
 create extension if not exists pgcrypto;
 
-create table if not exists profiles (
+-- Renames the table in place if it was already created as `profiles` by an
+-- earlier run of this script; no-op otherwise.
+alter table if exists profiles rename to profile_baby;
+
+create table if not exists profile_baby (
   user_id uuid primary key references auth.users(id) on delete cascade,
   hpht date not null,
   baby_name text,
@@ -26,19 +30,22 @@ create table if not exists measurements (
   created_at timestamptz not null default now()
 );
 
-alter table profiles enable row level security;
+alter table profile_baby enable row level security;
 alter table measurements enable row level security;
 
-drop policy if exists "profiles_select_own" on profiles;
-create policy "profiles_select_own" on profiles
+drop policy if exists "profiles_select_own" on profile_baby;
+drop policy if exists "profile_baby_select_own" on profile_baby;
+create policy "profile_baby_select_own" on profile_baby
   for select using (auth.uid() = user_id);
 
-drop policy if exists "profiles_insert_own" on profiles;
-create policy "profiles_insert_own" on profiles
+drop policy if exists "profiles_insert_own" on profile_baby;
+drop policy if exists "profile_baby_insert_own" on profile_baby;
+create policy "profile_baby_insert_own" on profile_baby
   for insert with check (auth.uid() = user_id);
 
-drop policy if exists "profiles_update_own" on profiles;
-create policy "profiles_update_own" on profiles
+drop policy if exists "profiles_update_own" on profile_baby;
+drop policy if exists "profile_baby_update_own" on profile_baby;
+create policy "profile_baby_update_own" on profile_baby
   for update using (auth.uid() = user_id);
 
 drop policy if exists "measurements_select_own" on measurements;

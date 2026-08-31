@@ -35,9 +35,7 @@ function renderNav(active) {
   mount.innerHTML = `
     <nav class="mb-12 flex flex-wrap items-center justify-between gap-4 border-b border-neutral-200 pb-6 dark:border-neutral-800">
       <a href="index.html" class="flex items-center gap-2 text-sm font-medium tracking-widest text-neutral-500 transition hover:text-orange-500 dark:text-neutral-400">
-        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-orange-500">
-          <img src="assets/logo.svg" alt="" class="h-3.5 w-3.5" />
-        </span>
+        <img src="assets/logo.svg" alt="" class="h-6 w-6" />
         BABYTRACKER
       </a>
       <div class="flex items-center gap-5 text-sm font-medium">

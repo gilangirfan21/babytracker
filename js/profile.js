@@ -15,7 +15,7 @@ function showStatus(message, tone = 'info') {
 }
 
 async function loadProfile(userId) {
-  const { data, error } = await db.from('profiles').select('*').eq('user_id', userId).maybeSingle();
+  const { data, error } = await db.from('profile_baby').select('*').eq('user_id', userId).maybeSingle();
 
   if (error) {
     showStatus(`Gagal memuat profil: ${error.message}`, 'error');
@@ -41,7 +41,7 @@ async function handleSubmit(event, userId) {
   submitButton.disabled = true;
   showStatus('Menyimpan...');
 
-  const { error } = await db.from('profiles').upsert(payload);
+  const { error } = await db.from('profile_baby').upsert(payload);
   submitButton.disabled = false;
 
   if (error) {

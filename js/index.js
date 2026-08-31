@@ -48,7 +48,7 @@ function renderDashboard(profile) {
 }
 
 async function loadDashboard(userId) {
-  const { data, error } = await db.from('profiles').select('*').eq('user_id', userId).maybeSingle();
+  const { data, error } = await db.from('profile_baby').select('*').eq('user_id', userId).maybeSingle();
 
   if (error) {
     dashboard.innerHTML = `<p class="text-sm text-orange-400">Gagal memuat profil: ${error.message}</p>`;
