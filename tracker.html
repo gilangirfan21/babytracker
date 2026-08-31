@@ -3,61 +3,67 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pantau Tumbuh Kembang Janin</title>
+  <title>USG Tracker</title>
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+  <script>
+    (function () {
+      var stored = localStorage.getItem('theme');
+      var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.classList.toggle('dark', dark);
+    })();
+  </script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-neutral-950 text-neutral-100">
+<body class="bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
   <div class="mx-auto max-w-3xl px-6 py-10">
-    <nav class="mb-12 flex items-center justify-between">
-      <a href="index.html" class="text-sm font-medium tracking-widest text-neutral-400 transition hover:text-orange-500">
-        BRAND
-      </a>
-      <span class="text-sm font-medium text-orange-500">USG Tracker</span>
-    </nav>
+    <div id="app-nav"></div>
 
     <header class="mb-10">
       <p class="mb-3 text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
         Tracker
       </p>
-      <h1 class="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+      <h1 class="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-white sm:text-4xl">
         Tumbuh kembang janin
       </h1>
-      <p class="mt-4 text-neutral-400">
+      <p class="mt-4 text-neutral-600 dark:text-neutral-400">
         Catat hasil USG tiap kunjungan, lalu bandingkan dengan rentang referensi
         per usia kehamilan.
       </p>
     </header>
 
-    <section class="mb-12 rounded-xl border border-neutral-800 p-6">
-      <h2 class="mb-6 text-lg font-medium text-white">Tambah pemeriksaan</h2>
+    <section class="mb-12 rounded-xl border border-neutral-200 p-6 dark:border-neutral-800">
+      <h2 class="mb-6 text-lg font-medium text-neutral-900 dark:text-white">Tambah pemeriksaan</h2>
 
       <form id="measurement-form" class="space-y-5">
         <div class="grid gap-5 sm:grid-cols-2">
           <label class="block">
-            <span class="text-sm text-neutral-400">Usia kehamilan</span>
+            <span class="text-sm text-neutral-600 dark:text-neutral-400">Usia kehamilan</span>
             <select
               name="gestational_week" id="gestational_week" required
-              class="mt-2 w-full rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-2.5 text-neutral-100 outline-none transition focus:border-orange-500"
+              class="mt-2 w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-neutral-900 outline-none transition focus:border-orange-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100"
             ></select>
           </label>
 
           <label class="block">
-            <span class="text-sm text-neutral-400">Tanggal pemeriksaan</span>
+            <span class="text-sm text-neutral-600 dark:text-neutral-400">Tanggal pemeriksaan</span>
             <input
               type="date" name="measurement_date" id="measurement_date" required
-              class="mt-2 w-full rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-2.5 text-neutral-100 outline-none transition focus:border-orange-500"
+              class="mt-2 w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-neutral-900 outline-none transition focus:border-orange-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100"
             />
           </label>
 
           <label class="block sm:col-span-2">
-            <span class="text-sm text-neutral-400">Jenis kelamin janin</span>
-            <span class="mt-0.5 block text-xs text-neutral-600">
+            <span class="text-sm text-neutral-600 dark:text-neutral-400">Jenis kelamin janin</span>
+            <span class="mt-0.5 block text-xs text-neutral-500 dark:text-neutral-600">
               Janin laki-laki 3,5&ndash;4,5% lebih berat &mdash; rentang berat menyesuaikan
             </span>
             <select
               name="fetal_sex" id="fetal_sex"
-              class="mt-2 w-full rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-2.5 text-neutral-100 outline-none transition focus:border-orange-500"
+              class="mt-2 w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-neutral-900 outline-none transition focus:border-orange-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100"
             ></select>
           </label>
         </div>
@@ -65,11 +71,11 @@
         <div id="metric-fields" class="grid gap-5 sm:grid-cols-2"></div>
 
         <label class="block">
-          <span class="text-sm text-neutral-400">Catatan <span class="text-neutral-600">(opsional)</span></span>
+          <span class="text-sm text-neutral-600 dark:text-neutral-400">Catatan <span class="text-neutral-500 dark:text-neutral-600">(opsional)</span></span>
           <textarea
             name="notes" rows="2"
             placeholder="Catatan dari dokter, keluhan, dll."
-            class="mt-2 w-full resize-none rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-2.5 text-neutral-100 placeholder-neutral-600 outline-none transition focus:border-orange-500"
+            class="mt-2 w-full resize-none rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-neutral-900 placeholder-neutral-400 outline-none transition focus:border-orange-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder-neutral-600"
           ></textarea>
         </label>
 
@@ -80,20 +86,20 @@
           >
             Simpan data
           </button>
-          <p id="status-bar" class="text-sm text-neutral-400"></p>
+          <p id="status-bar" class="text-sm text-neutral-500"></p>
         </div>
       </form>
     </section>
 
     <section>
-      <h2 class="mb-6 text-lg font-medium text-white">Riwayat</h2>
+      <h2 class="mb-6 text-lg font-medium text-neutral-900 dark:text-white">Riwayat</h2>
       <div id="history-list" class="space-y-4"></div>
     </section>
 
-    <footer class="mt-16 border-t border-neutral-800 pt-6">
-      <div class="space-y-3 text-xs leading-relaxed text-neutral-600">
+    <footer class="mt-16 border-t border-neutral-200 pt-6 dark:border-neutral-800">
+      <div class="space-y-3 text-xs leading-relaxed text-neutral-500 dark:text-neutral-600">
         <p>
-          <span class="text-neutral-500">Sumber referensi:</span>
+          <span class="text-neutral-600 dark:text-neutral-500">Sumber referensi:</span>
           WHO Fetal Growth Charts &mdash; Kiserud T, dkk.
           <em>A Multinational Longitudinal Study of Ultrasound Biometric Measurements
           and Estimated Fetal Weight</em>, PLOS Medicine 2017;14(1):e1002220.
@@ -101,11 +107,11 @@
           <a
             href="https://doi.org/10.1371/journal.pmed.1002220"
             target="_blank" rel="noopener"
-            class="text-neutral-500 underline underline-offset-2 transition hover:text-orange-500"
+            class="text-neutral-600 underline underline-offset-2 transition hover:text-orange-500 dark:text-neutral-500"
           >Lihat publikasi</a>
         </p>
         <p>
-          <span class="text-neutral-500">Perlu diingat:</span>
+          <span class="text-neutral-600 dark:text-neutral-500">Perlu diingat:</span>
           WHO menemukan pertumbuhan janin berbeda signifikan antar negara &mdash;
           median berat lahir berkisar dari 2.975 g (India) sampai 3.575 g (Norwegia)
           &mdash; dan menyatakan kurva ini mungkin perlu disesuaikan untuk penggunaan
@@ -113,7 +119,7 @@
         </p>
         <p>
           Hasil di sini bersifat indikatif dan
-          <span class="text-neutral-500">bukan diagnosis medis</span>. Interpretasi
+          <span class="text-neutral-600 dark:text-neutral-500">bukan diagnosis medis</span>. Interpretasi
           sebenarnya perlu mempertimbangkan tren antar kunjungan dan riwayat kehamilan.
           Selalu konsultasikan hasil USG dengan dokter atau bidan.
         </p>
@@ -122,6 +128,8 @@
   </div>
 
   <script src="js/config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/nav.js"></script>
   <script src="js/growth-reference.js"></script>
   <script src="js/app.js"></script>
 </body>

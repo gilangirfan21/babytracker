@@ -1,5 +1,3 @@
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 const form = document.getElementById('measurement-form');
 const weekSelect = document.getElementById('gestational_week');
 const dateInput = document.getElementById('measurement_date');
@@ -8,6 +6,8 @@ const sexSelect = document.getElementById('fetal_sex');
 const statusBar = document.getElementById('status-bar');
 const historyList = document.getElementById('history-list');
 const submitButton = form.querySelector('button[type="submit"]');
+
+let currentUserId = null;
 
 function buildWeekOptions() {
   for (let week = WEEK_MIN; week <= WEEK_MAX; week++) {
@@ -50,9 +50,9 @@ function buildMetricFields() {
 
 function showStatus(message, tone = 'info') {
   const tones = {
-    info: 'text-neutral-400',
-    error: 'text-orange-400',
-    success: 'text-neutral-300',
+    info: 'text-neutral-500 dark:text-neutral-400',
+    error: 'text-orange-500 dark:text-orange-400',
+    success: 'text-neutral-600 dark:text-neutral-300',
   };
   statusBar.className = `text-sm ${tones[tone]}`;
   statusBar.textContent = message;
@@ -60,16 +60,16 @@ function showStatus(message, tone = 'info') {
 
 function statusBadge(status) {
   const styles = {
-    normal: 'border-neutral-700 text-neutral-400',
-    below: 'border-orange-500/50 text-orange-400',
-    above: 'border-orange-500/50 text-orange-400',
+    normal: 'border-neutral-300 text-neutral-500 dark:border-neutral-700 dark:text-neutral-400',
+    below: 'border-orange-500/50 text-orange-500 dark:text-orange-400',
+    above: 'border-orange-500/50 text-orange-500 dark:text-orange-400',
   };
   return `<span class="rounded-full border px-2.5 py-0.5 text-xs ${styles[status]}">${STATUS_TEXT[status]}</span>`;
 }
 
 function renderAssessment(assessments) {
   if (!assessments.length) {
-    return '<p class="text-sm text-neutral-600">Tidak ada data referensi untuk minggu ini.</p>';
+    return '<p class="text-sm text-neutral-500 dark:text-neutral-600">Tidak ada data referensi untuk minggu ini.</p>';
   }
 
   return `
@@ -77,12 +77,12 @@ function renderAssessment(assessments) {
       ${assessments
         .map(
           (a) => `
-        <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-neutral-900/60 px-4 py-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-neutral-100 px-4 py-3 dark:bg-neutral-900/60">
           <div>
-            <p class="text-sm text-neutral-200">
+            <p class="text-sm text-neutral-700 dark:text-neutral-200">
               ${a.label} <span class="text-neutral-500">(${a.abbr})</span>
             </p>
-            <p class="text-xs text-neutral-600">
+            <p class="text-xs text-neutral-500 dark:text-neutral-600">
               ${a.originalName}${
                 a.sexApplied && a.sexApplied !== 'unknown'
                   ? ` &middot; tabel ${FETAL_SEX_OPTIONS[a.sexApplied].toLowerCase()}`
@@ -90,7 +90,7 @@ function renderAssessment(assessments) {
               }
             </p>
             <p class="mt-1 text-xs text-neutral-500">
-              <span class="text-neutral-300">${a.value} ${a.unit}</span>
+              <span class="text-neutral-700 dark:text-neutral-300">${a.value} ${a.unit}</span>
               &middot; p10&ndash;p90: ${a.band.low}&ndash;${a.band.high}
               &middot; median ${a.band.median}
               (${a.diffFromMedian >= 0 ? '+' : ''}${a.diffFromMedian}%)
@@ -106,7 +106,7 @@ function renderAssessment(assessments) {
 function renderHistory(rows) {
   if (!rows.length) {
     historyList.innerHTML =
-      '<p class="rounded-xl border border-dashed border-neutral-800 px-6 py-12 text-center text-sm text-neutral-600">Belum ada data. Tambah pemeriksaan pertama lewat form di atas.</p>';
+      '<p class="rounded-xl border border-dashed border-neutral-300 px-6 py-12 text-center text-sm text-neutral-500 dark:border-neutral-800 dark:text-neutral-600">Belum ada data. Tambah pemeriksaan pertama lewat form di atas.</p>';
     return;
   }
 
@@ -116,10 +116,10 @@ function renderHistory(rows) {
       const flagged = assessments.filter((a) => a.status !== 'normal').length;
 
       return `
-      <article class="rounded-xl border border-neutral-800 p-5">
+      <article class="rounded-xl border border-neutral-200 p-5 dark:border-neutral-800">
         <header class="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h3 class="text-lg font-medium text-white">Minggu ke-${row.gestational_week}</h3>
+            <h3 class="text-lg font-medium text-neutral-900 dark:text-white">Minggu ke-${row.gestational_week}</h3>
             <p class="text-xs text-neutral-500">
               ${formatDate(row.measurement_date)}
               ${
@@ -132,19 +132,19 @@ function renderHistory(rows) {
           <div class="flex items-center gap-3">
             ${
               flagged
-                ? `<span class="text-xs text-orange-400">${flagged} perlu dicek</span>`
+                ? `<span class="text-xs text-orange-500 dark:text-orange-400">${flagged} perlu dicek</span>`
                 : '<span class="text-xs text-neutral-500">Semua dalam rentang</span>'
             }
             <button
               data-delete="${row.id}"
-              class="text-xs text-neutral-600 transition hover:text-orange-400"
+              class="text-xs text-neutral-500 transition hover:text-orange-500 dark:text-neutral-600 dark:hover:text-orange-400"
             >Hapus</button>
           </div>
         </header>
         ${renderAssessment(assessments)}
         ${
           row.notes
-            ? `<p class="mt-4 border-t border-neutral-800 pt-3 text-sm text-neutral-400">${escapeHtml(row.notes)}</p>`
+            ? `<p class="mt-4 border-t border-neutral-200 pt-3 text-sm text-neutral-600 dark:border-neutral-800 dark:text-neutral-400">${escapeHtml(row.notes)}</p>`
             : ''
         }
       </article>`;
@@ -186,6 +186,7 @@ async function handleSubmit(event) {
 
   const formData = new FormData(form);
   const payload = {
+    user_id: currentUserId,
     gestational_week: Number(formData.get('gestational_week')),
     measurement_date: formData.get('measurement_date'),
     fetal_sex: formData.get('fetal_sex') || 'unknown',
@@ -235,13 +236,19 @@ async function handleDelete(event) {
   loadHistory();
 }
 
-buildWeekOptions();
-buildSexOptions();
-buildMetricFields();
-weekSelect.value = 20;
-dateInput.value = new Date().toISOString().slice(0, 10);
+requireAuth().then((session) => {
+  if (!session) return;
+  currentUserId = session.user.id;
+  renderNav('tracker');
 
-form.addEventListener('submit', handleSubmit);
-historyList.addEventListener('click', handleDelete);
+  buildWeekOptions();
+  buildSexOptions();
+  buildMetricFields();
+  weekSelect.value = 20;
+  dateInput.value = new Date().toISOString().slice(0, 10);
 
-loadHistory();
+  form.addEventListener('submit', handleSubmit);
+  historyList.addEventListener('click', handleDelete);
+
+  loadHistory();
+});

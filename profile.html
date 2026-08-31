@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profil</title>
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+  <script>
+    (function () {
+      var stored = localStorage.getItem('theme');
+      var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.classList.toggle('dark', dark);
+    })();
+  </script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
+  <div class="mx-auto max-w-2xl px-6 py-10">
+    <div id="app-nav"></div>
+
+    <header class="mb-10">
+      <p class="mb-3 text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
+        Profil
+      </p>
+      <h1 class="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-white sm:text-4xl">
+        Data kehamilan
+      </h1>
+      <p class="mt-4 text-neutral-600 dark:text-neutral-400">
+        Dipakai untuk menghitung usia kehamilan dan perkiraan tanggal lahir di halaman depan.
+      </p>
+    </header>
+
+    <section class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-800">
+      <form id="profile-form" class="space-y-5">
+        <label class="block">
+          <span class="text-sm text-neutral-600 dark:text-neutral-400">
+            Hari pertama haid terakhir (HPHT)
+          </span>
+          <span class="mt-0.5 block text-xs text-neutral-500 dark:text-neutral-600">
+            Dipakai untuk menghitung usia kehamilan dan HPL (perkiraan lahir = HPHT + 280 hari).
+          </span>
+          <input
+            type="date" name="hpht" id="hpht" required
+            class="mt-2 w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-neutral-900 outline-none transition focus:border-orange-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100"
+          />
+        </label>
+
+        <label class="block">
+          <span class="text-sm text-neutral-600 dark:text-neutral-400">
+            Nama bayi <span class="text-neutral-500 dark:text-neutral-600">(opsional)</span>
+          </span>
+          <input
+            type="text" name="baby_name" id="baby_name" placeholder="mis. Dedek"
+            class="mt-2 w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-neutral-900 placeholder-neutral-400 outline-none transition focus:border-orange-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder-neutral-600"
+          />
+        </label>
+
+        <div class="flex flex-wrap items-center gap-4 pt-1">
+          <button
+            type="submit"
+            class="rounded-full bg-orange-500 px-6 py-2.5 text-sm font-medium text-neutral-950 transition hover:bg-orange-400 disabled:opacity-50"
+          >
+            Simpan
+          </button>
+          <p id="status-bar" class="text-sm text-neutral-500"></p>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/profile.js"></script>
+</body>
+</html>

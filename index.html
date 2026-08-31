@@ -1,39 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome</title> 
+  <title>BabyTracker</title>
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+  <script>
+    (function () {
+      var stored = localStorage.getItem('theme');
+      var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.classList.toggle('dark', dark);
+    })();
+  </script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-neutral-950 text-neutral-100">
-  <div class="flex min-h-screen flex-col">
-    <nav class="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-8">
-      <span class="text-sm font-medium tracking-widest text-neutral-400">BRAND</span>
-      <a
-        href="tracker.html"
-        class="text-sm font-medium text-neutral-400 transition hover:text-orange-500"
-      >
-        USG Tracker
-      </a>
-    </nav>
+<body class="bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
+  <div class="mx-auto flex min-h-screen max-w-3xl flex-col px-6 py-10">
+    <div id="app-nav"></div>
 
-    <main class="flex flex-1 flex-col items-center justify-center px-6 text-center">
-      <p class="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
-        Welcome
-      </p>
-      <h1 class="max-w-2xl text-4xl font-semibold tracking-tight text-white sm:text-5xl md:text-6xl">
-        Simple, focused,
-        <span class="text-orange-500">built to last.</span>
-      </h1>
-      <p class="mt-6 max-w-md text-base text-neutral-400 sm:text-lg">
-        A clean starting point with nothing extra. Just what you need to begin.
-      </p>
+    <main id="dashboard" class="flex flex-1 flex-col items-center justify-center gap-6 text-center">
+      <p class="text-sm text-neutral-500">Memuat...</p>
     </main>
-
-    <footer class="mx-auto w-full max-w-5xl px-6 py-8 text-center text-xs text-neutral-600">
-      &copy; 2026 Brand. All rights reserved.
-    </footer>
   </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/index.js"></script>
 </body>
 </html>
