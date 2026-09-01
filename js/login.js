@@ -66,6 +66,10 @@ async function handleSubmit(event) {
   window.location.replace('index.html');
 }
 
+const themeToggleButton = document.getElementById('theme-toggle');
+themeToggleButton.innerHTML = themeIcon(document.documentElement.classList.contains('dark'));
+themeToggleButton.addEventListener('click', toggleTheme);
+
 form.addEventListener('submit', handleSubmit);
 toggleModeButton.addEventListener('click', () => setMode(mode === 'signup' ? 'signin' : 'signup'));
 

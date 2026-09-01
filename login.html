@@ -12,13 +12,18 @@
       document.documentElement.classList.toggle('dark', dark);
     })();
   </script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = { darkMode: 'class' };
   </script>
-  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
+  <button
+    id="theme-toggle" type="button" aria-label="Ganti tema"
+    class="fixed right-6 top-6 rounded-full border border-neutral-200 px-2.5 py-1 text-neutral-500 transition hover:border-orange-500 hover:text-orange-500 dark:border-neutral-800 dark:text-neutral-400"
+  ></button>
+
   <div class="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-6 py-10">
     <div class="mb-1 flex items-center justify-center gap-2">
       <img src="assets/logo.svg" alt="" class="h-6 w-6" />
@@ -67,6 +72,7 @@
 
   <script src="js/config.js"></script>
   <script src="js/db.js"></script>
+  <script src="js/nav.js"></script>
   <script src="js/login.js"></script>
 </body>
 </html>
