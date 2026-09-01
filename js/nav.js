@@ -1,6 +1,7 @@
 const NAV_LINKS = [
   { key: 'index', href: 'index.html', label: 'Home' },
   { key: 'tracker', href: 'tracker.html', label: 'USG Tracker' },
+  { key: 'grafik', href: 'grafik.html', label: 'Grafik' },
   { key: 'profile', href: 'profile.html', label: 'Profil' },
 ];
 

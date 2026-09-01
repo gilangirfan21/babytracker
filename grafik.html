@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grafik pertumbuhan</title>
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+  <script>
+    (function () {
+      var stored = localStorage.getItem('theme');
+      var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.classList.toggle('dark', dark);
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* Chart tokens. Both modes are declared here rather than flipped at runtime,
+       so the theme toggle repaints every chart through CSS alone — no re-render. */
+    :root {
+      --viz-surface: #ffffff;
+      --viz-band: #ecebe6;
+      --viz-band-edge: #dedcd4;
+      --viz-median: #a8a6a0;
+      --viz-grid: #f4f4f2;
+      --viz-axis: #d4d4d4;
+      --viz-muted: #898781;
+      --viz-series: #ea580c;
+      --viz-tip-bg: #ffffff;
+      --viz-tip-ring: rgba(11, 11, 11, 0.12);
+      --viz-tip-shadow: rgba(11, 11, 11, 0.10);
+      --viz-tip-ink: #0b0b0b;
+    }
+    html.dark {
+      --viz-surface: #0a0a0a;
+      --viz-band: #26262a;
+      --viz-band-edge: #3a3a3e;
+      --viz-median: #6f6e69;
+      --viz-grid: #171717;
+      --viz-axis: #383835;
+      --viz-muted: #898781;
+      --viz-series: #ea580c;
+      --viz-tip-bg: #171717;
+      --viz-tip-ring: rgba(255, 255, 255, 0.14);
+      --viz-tip-shadow: rgba(0, 0, 0, 0.5);
+      --viz-tip-ink: #ffffff;
+    }
+
+    .viz-svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .viz-grid { stroke: var(--viz-grid); stroke-width: 1; }
+    .viz-axis { stroke: var(--viz-axis); stroke-width: 1; }
+    .viz-band { fill: var(--viz-band); stroke: var(--viz-band-edge); stroke-width: 1; }
+    .viz-median { fill: none; stroke: var(--viz-median); stroke-width: 1.25; }
+    .viz-line {
+      fill: none; stroke: var(--viz-series); stroke-width: 2;
+      stroke-linecap: round; stroke-linejoin: round;
+    }
+    .viz-dot { fill: var(--viz-series); stroke: var(--viz-surface); stroke-width: 2; }
+    .viz-dot-flagged { stroke-width: 2.5; }
+    .viz-tick {
+      fill: var(--viz-muted); font-size: 12px; font-variant-numeric: tabular-nums;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    .viz-flag-label {
+      fill: var(--viz-tip-ink); font-size: 12px; font-weight: 500;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      paint-order: stroke; stroke: var(--viz-surface); stroke-width: 4px;
+    }
+    .viz-hit { fill: transparent; pointer-events: all; }
+
+    .viz-crosshair { stroke: var(--viz-axis); stroke-width: 1; opacity: 0; }
+    .viz-svg.is-hovered .viz-crosshair { opacity: 1; }
+    .viz-focus { fill: none; stroke: var(--viz-series); stroke-width: 2; opacity: 0; }
+    .viz-focus.is-visible { opacity: 1; }
+
+    .viz-tooltip {
+      position: fixed; z-index: 50; pointer-events: none; opacity: 0;
+      transition: opacity 100ms ease;
+      min-width: 11rem; padding: 0.625rem 0.75rem;
+      border-radius: 0.5rem; background: var(--viz-tip-bg);
+      box-shadow: 0 0 0 1px var(--viz-tip-ring), 0 8px 24px var(--viz-tip-shadow);
+      color: var(--viz-tip-ink); font-size: 0.75rem; line-height: 1.5;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    .viz-tooltip.is-visible { opacity: 1; }
+    .viz-tip-title { font-weight: 500; margin-bottom: 0.25rem; }
+    .viz-tip-row { display: flex; align-items: center; gap: 0.5rem; justify-content: space-between; }
+    .viz-tip-measured { font-variant-numeric: tabular-nums; }
+    .viz-tip-muted { color: var(--viz-muted); }
+    .viz-tip-flag { color: var(--viz-series); }
+    .viz-tip-swatch {
+      width: 0.5rem; height: 0.5rem; border-radius: 9999px;
+      background: var(--viz-series); flex: none; margin-right: -0.25rem;
+    }
+  </style>
+</head>
+<body class="bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
+  <div class="mx-auto max-w-3xl px-6 py-10">
+    <div id="app-nav"></div>
+
+    <header class="mb-8">
+      <p class="mb-3 text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
+        Grafik
+      </p>
+      <h1 class="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-white sm:text-4xl">
+        Tren pertumbuhan
+      </h1>
+      <p class="mt-4 text-neutral-600 dark:text-neutral-400">
+        Tiap titik oranye adalah satu hasil USG. Area abu-abu adalah rentang normal
+        WHO (persentil ke-10 sampai ke-90) untuk usia kehamilan itu &mdash; selama
+        titiknya di dalam area, hasilnya dalam rentang.
+      </p>
+      <p id="chart-status" class="mt-3 text-sm text-neutral-500"></p>
+    </header>
+
+    <!-- Legend: three marks, three names — identity never rests on colour alone. -->
+    <div class="mb-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-neutral-500 dark:text-neutral-400">
+      <span class="flex items-center gap-2">
+        <svg width="20" height="10" aria-hidden="true"><rect class="viz-band" x="0.5" y="0.5" width="19" height="9" rx="2" /></svg>
+        Rentang normal (p10&ndash;p90)
+      </span>
+      <span class="flex items-center gap-2">
+        <svg width="20" height="10" aria-hidden="true"><line class="viz-median" x1="0" y1="5" x2="20" y2="5" /></svg>
+        Median (p50)
+      </span>
+      <span class="flex items-center gap-2">
+        <svg width="20" height="10" aria-hidden="true"><line class="viz-line" x1="0" y1="5" x2="20" y2="5" /><circle class="viz-dot" cx="10" cy="5" r="4" /></svg>
+        Data bayi
+      </span>
+      <span id="band-note" class="text-neutral-500 dark:text-neutral-600"></span>
+    </div>
+
+    <div id="chart-grid" class="grid gap-6 sm:grid-cols-2"></div>
+
+    <details class="mt-10 rounded-xl border border-neutral-200 p-5 dark:border-neutral-800">
+      <summary class="cursor-pointer text-sm font-medium text-neutral-900 dark:text-white">
+        Lihat sebagai tabel
+      </summary>
+      <div id="table-view" class="mt-4"></div>
+    </details>
+
+    <footer class="mt-16 border-t border-neutral-200 pt-6 dark:border-neutral-800">
+      <div class="space-y-3 text-xs leading-relaxed text-neutral-500 dark:text-neutral-600">
+        <p>
+          <span class="text-neutral-600 dark:text-neutral-500">Sumber referensi:</span>
+          WHO Fetal Growth Charts &mdash; Kiserud T, dkk.
+          <em>A Multinational Longitudinal Study of Ultrasound Biometric Measurements
+          and Estimated Fetal Weight</em>, PLOS Medicine 2017;14(1):e1002220.
+          <a
+            href="https://doi.org/10.1371/journal.pmed.1002220"
+            target="_blank" rel="noopener"
+            class="text-neutral-600 underline underline-offset-2 transition hover:text-orange-500 dark:text-neutral-500"
+          >Lihat publikasi</a>
+        </p>
+        <p>
+          Grafik di sini bersifat indikatif dan
+          <span class="text-neutral-600 dark:text-neutral-500">bukan diagnosis medis</span>.
+          Yang dibaca dokter bukan satu titik, tapi tren antar kunjungan. Selalu
+          konsultasikan hasil USG dengan dokter atau bidan.
+        </p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/growth-reference.js"></script>
+  <script src="js/chart.js"></script>
+  <script src="js/grafik.js"></script>
+</body>
+</html>
