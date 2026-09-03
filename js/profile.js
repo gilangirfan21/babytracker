@@ -1,3 +1,6 @@
+import { db, requireAuth } from './db.js';
+import { renderNav } from './nav.js';
+
 const form = document.getElementById('profile-form');
 const hphtInput = document.getElementById('hpht');
 const babyNameInput = document.getElementById('baby_name');
@@ -54,7 +57,7 @@ async function handleSubmit(event, userId) {
 
 requireAuth().then((session) => {
   if (!session) return;
-  renderNav('profile');
+  renderNav('profile', session.user.email);
   loadProfile(session.user.id);
   form.addEventListener('submit', (event) => handleSubmit(event, session.user.id));
 });

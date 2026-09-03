@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Masuk</title>
-  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+  <link rel="icon" type="image/svg+xml" href="/assets/logo.svg" />
   <script>
     (function () {
       var stored = localStorage.getItem('theme');
@@ -16,7 +16,6 @@
   <script>
     tailwind.config = { darkMode: 'class' };
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
   <button
@@ -26,7 +25,7 @@
 
   <div class="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-6 py-10">
     <div class="mb-1 flex items-center justify-center gap-2">
-      <img src="assets/logo.svg" alt="" class="h-6 w-6" />
+      <img src="/assets/logo.svg" alt="" class="h-6 w-6" />
       <p class="text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
         BabyTracker
       </p>
@@ -70,9 +69,6 @@
     </p>
   </div>
 
-  <script src="js/config.js"></script>
-  <script src="js/db.js"></script>
-  <script src="js/nav.js"></script>
-  <script src="js/login.js"></script>
+  <script type="module" src="/js/login.js"></script>
 </body>
 </html>

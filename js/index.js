@@ -1,3 +1,6 @@
+import { db, requireAuth } from './db.js';
+import { renderNav } from './nav.js';
+
 const dashboard = document.getElementById('dashboard');
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -65,6 +68,6 @@ async function loadDashboard(userId) {
 
 requireAuth().then((session) => {
   if (!session) return;
-  renderNav('index');
+  renderNav('index', session.user.email);
   loadDashboard(session.user.id);
 });

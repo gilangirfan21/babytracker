@@ -1,3 +1,8 @@
+import { db, requireAuth } from './db.js';
+import { renderNav } from './nav.js';
+import { METRICS, FETAL_SEX_OPTIONS, STATUS_TEXT, assessMetric } from './growth-reference.js';
+import { renderGrowthChart, attachChartHover, weekWindow } from './chart.js';
+
 const chartGrid = document.getElementById('chart-grid');
 const chartStatus = document.getElementById('chart-status');
 const bandNote = document.getElementById('band-note');
@@ -166,6 +171,6 @@ async function loadCharts() {
 
 requireAuth().then((session) => {
   if (!session) return;
-  renderNav('grafik');
+  renderNav('grafik', session.user.email);
   loadCharts();
 });

@@ -83,10 +83,10 @@ const FEMUR_LENGTH = {
   38: [68, 72, 75], 39: [69, 73, 76], 40: [69, 73, 77],
 };
 
-const WEEK_MIN = 14;
-const WEEK_MAX = 40;
+export const WEEK_MIN = 14;
+export const WEEK_MAX = 40;
 
-const FETAL_SEX_OPTIONS = {
+export const FETAL_SEX_OPTIONS = {
   unknown: 'Belum diketahui',
   female: 'Perempuan',
   male: 'Laki-laki',
@@ -97,7 +97,7 @@ function bandFrom(table, week) {
   return row ? { low: row[0], median: row[1], high: row[2] } : null;
 }
 
-const METRICS = {
+export const METRICS = {
   weight_grams: {
     label: 'Berat janin',
     originalName: 'Estimated Fetal Weight',
@@ -141,7 +141,7 @@ const METRICS = {
  * Compare one measurement against its WHO reference band.
  * Returns null when the week falls outside the reference table (14–40).
  */
-function assessMetric(metricKey, week, value, fetalSex = 'unknown') {
+export function assessMetric(metricKey, week, value, fetalSex = 'unknown') {
   const metric = METRICS[metricKey];
   if (!metric || value === null || value === undefined || value === '') return null;
 
@@ -170,14 +170,14 @@ function assessMetric(metricKey, week, value, fetalSex = 'unknown') {
 }
 
 /** Assess every metric present on a measurement row. */
-function assessMeasurement(row) {
+export function assessMeasurement(row) {
   const fetalSex = row.fetal_sex || 'unknown';
   return Object.keys(METRICS)
     .map((key) => assessMetric(key, row.gestational_week, row[key], fetalSex))
     .filter(Boolean);
 }
 
-const STATUS_TEXT = {
+export const STATUS_TEXT = {
   below: 'Di bawah p10',
   normal: 'Dalam rentang',
   above: 'Di atas p90',

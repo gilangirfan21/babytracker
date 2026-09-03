@@ -1,3 +1,6 @@
+import { db, getSession } from './db.js';
+import { themeIcon, toggleTheme } from './nav.js';
+
 const form = document.getElementById('auth-form');
 const formTitle = document.getElementById('form-title');
 const submitButton = document.getElementById('submit-button');

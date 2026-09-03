@@ -10,6 +10,8 @@
 // finding — position carries it, not colour. Out-of-range points get a direct
 // label; everything else is left to the axis and the tooltip.
 
+import { WEEK_MIN, WEEK_MAX, METRICS, STATUS_TEXT, assessMetric } from './growth-reference.js';
+
 const VIEW_W = 400;
 const VIEW_H = 250;
 const PAD = { top: 14, right: 12, bottom: 34, left: 46 };
@@ -49,7 +51,7 @@ function formatValue(value) {
  * range leaves two thirds of every plot empty and squashes the band into a thread.
  * Falls back to the whole reference range when there is nothing to plot.
  */
-function weekWindow(rows) {
+export function weekWindow(rows) {
   const MIN_SPAN = 12;
   const weeks = rows
     .map((row) => Number(row.gestational_week))
@@ -100,7 +102,7 @@ function svgText(x, y, text, className, anchor = 'middle') {
  * Build one chart. Returns the SVG markup; the caller mounts it and the shared
  * hover layer picks it up via the chart id.
  */
-function renderGrowthChart(chartId, metricKey, rows, fetalSex, view) {
+export function renderGrowthChart(chartId, metricKey, rows, fetalSex, view) {
   const metric = METRICS[metricKey];
   const band = bandSeries(metric, fetalSex, view);
   const points = metricSeries(metricKey, rows).filter(
@@ -327,7 +329,7 @@ function hideTooltip(root) {
  * not the SVGs, so they survive a re-render — and the guard keeps a second call
  * from stacking another set on top.
  */
-function attachChartHover(root) {
+export function attachChartHover(root) {
   if (root.dataset.hoverBound) return;
   root.dataset.hoverBound = 'true';
 

@@ -1,3 +1,7 @@
+import { db, requireAuth } from './db.js';
+import { renderNav } from './nav.js';
+import { WEEK_MIN, WEEK_MAX, FETAL_SEX_OPTIONS, METRICS, STATUS_TEXT, assessMeasurement } from './growth-reference.js';
+
 const form = document.getElementById('measurement-form');
 const weekSelect = document.getElementById('gestational_week');
 const dateInput = document.getElementById('measurement_date');
@@ -239,7 +243,7 @@ async function handleDelete(event) {
 requireAuth().then((session) => {
   if (!session) return;
   currentUserId = session.user.id;
-  renderNav('tracker');
+  renderNav('tracker', session.user.email);
 
   buildWeekOptions();
   buildSexOptions();
