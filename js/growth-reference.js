@@ -12,11 +12,6 @@
 //
 // Each row is [p10, p50, p90]. A value below p10 or above p90 is flagged.
 //
-// NOTE: a correction to this paper (PLOS Med 2021;18(1):e1003526) swapped the
-// captions on the two ratio tables (FL/HC vs FL/BPD). The biometry tables used
-// here are unaffected, but read the correction before transcribing the ratio
-// tables from the original PDF.
-//
 // Caveats worth knowing before trusting a verdict here:
 //   - WHO found fetal growth differs significantly BETWEEN COUNTRIES (median
 //     birthweight ranged from 2,975 g in India to 3,575 g in Norway). The authors
@@ -24,9 +19,6 @@
 //     use". Indonesia was not among the 10 study countries.
 //   - Male fetuses run 3.5–4.5% heavier than female. Sex-specific EFW tables are
 //     used when fetal sex is known; the unisex table is the fallback.
-//   - EFW in this study was computed with Hadlock formula III, whose inputs are
-//     HC, AC and FL. EFW is therefore NOT independent of the other three: if HC
-//     drops, EFW drops mechanically. Never read them as two separate signals.
 
 const EFW_UNISEX = {
   14: [78, 90, 104], 15: [99, 114, 132], 16: [124, 144, 166], 17: [155, 179, 207],
@@ -105,9 +97,6 @@ function bandFrom(table, week) {
   return row ? { low: row[0], median: row[1], high: row[2] } : null;
 }
 
-// `tolerance` absorbs the fact that the published tables are rounded to whole
-// units. Without it a femur of 57.1 mm against a p90 of 57 mm raises an alarm
-// over 0.1 mm — far below the resolution of both the table and the probe.
 export const METRICS = {
   weight_grams: {
     label: 'Berat janin',
@@ -116,8 +105,6 @@ export const METRICS = {
     unit: 'gram',
     placeholder: 'mis. 665',
     sexSpecific: true,
-    tolerance: 0,
-    derived: true, // Hadlock III — computed from HC, AC and FL.
     reference: (week, fetalSex) => {
       const table =
         fetalSex === 'female' ? EFW_FEMALE : fetalSex === 'male' ? EFW_MALE : EFW_UNISEX;
@@ -130,7 +117,6 @@ export const METRICS = {
     abbr: 'HC',
     unit: 'mm',
     placeholder: 'mis. 222',
-    tolerance: 0.5,
     reference: (week) => bandFrom(HEAD_CIRCUMFERENCE, week),
   },
   abdominal_circumference_mm: {
@@ -139,7 +125,6 @@ export const METRICS = {
     abbr: 'AC',
     unit: 'mm',
     placeholder: 'mis. 197',
-    tolerance: 0.5,
     reference: (week) => bandFrom(ABDOMINAL_CIRCUMFERENCE, week),
   },
   femur_length_mm: {
@@ -148,60 +133,9 @@ export const METRICS = {
     abbr: 'FL',
     unit: 'mm',
     placeholder: 'mis. 43',
-    tolerance: 0.5,
     reference: (week) => bandFrom(FEMUR_LENGTH, week),
   },
 };
-
-/* ------------------------------------------------------------------ *
- * Percentile estimation
- * ------------------------------------------------------------------ */
-
-// Abramowitz & Stegun 7.1.26. Max absolute error ~1.5e-7 — far finer than the
-// 1 mm resolution of the underlying tables.
-function erf(x) {
-  const sign = x < 0 ? -1 : 1;
-  const t = 1 / (1 + 0.3275911 * Math.abs(x));
-  const y =
-    1 -
-    ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t +
-      0.254829592) *
-      t *
-      Math.exp(-x * x);
-  return sign * y;
-}
-
-function normalCdf(z) {
-  return 0.5 * (1 + erf(z / Math.SQRT2));
-}
-
-const Z_P90 = 1.2815515655446004; // inverse normal CDF at 0.90
-
-/**
- * Estimate where a value sits as a percentile, given only [p10, p50, p90].
- *
- * The published tables give three points, not a distribution. This fits a
- * normal on each side of the median separately — the p10→p50 gap sets the
- * lower spread, p50→p90 the upper — which handles the mild right skew in fetal
- * biometry better than one symmetric normal would.
- *
- * This is an ESTIMATE for reading trends, not a clinical percentile. Clamped to
- * 1–99 because a three-point fit says nothing trustworthy about the tails.
- */
-export function estimatePercentile(value, band) {
-  if (!band || !Number.isFinite(Number(value))) return null;
-  const v = Number(value);
-  const { low, median, high } = band;
-
-  const spread = v >= median ? (high - median) / Z_P90 : (median - low) / Z_P90;
-  if (!(spread > 0)) return null;
-
-  return Math.min(99, Math.max(1, Math.round(normalCdf((v - median) / spread) * 100)));
-}
-
-/* ------------------------------------------------------------------ *
- * Single-measurement assessment
- * ------------------------------------------------------------------ */
 
 /**
  * Compare one measurement against its WHO reference band.
@@ -215,12 +149,9 @@ export function assessMetric(metricKey, week, value, fetalSex = 'unknown') {
   if (!band) return null;
 
   const numeric = Number(value);
-  if (!Number.isFinite(numeric)) return null;
-
-  const tol = metric.tolerance ?? 0;
   let status = 'normal';
-  if (numeric < band.low - tol) status = 'below';
-  else if (numeric > band.high + tol) status = 'above';
+  if (numeric < band.low) status = 'below';
+  else if (numeric > band.high) status = 'above';
 
   return {
     key: metricKey,
@@ -229,16 +160,12 @@ export function assessMetric(metricKey, week, value, fetalSex = 'unknown') {
     abbr: metric.abbr,
     unit: metric.unit,
     value: numeric,
-    week: Number(week),
     status,
     band,
     // Which table produced this band — worth showing for EFW, since a known
     // fetal sex shifts the whole band by 3.5–4.5%.
     sexApplied: metric.sexSpecific ? fetalSex : null,
     diffFromMedian: Math.round(((numeric - band.median) / band.median) * 100),
-    // Unrounded, for charting and trend maths.
-    diffFromMedianExact: ((numeric - band.median) / band.median) * 100,
-    percentile: estimatePercentile(numeric, band),
   };
 }
 
@@ -255,202 +182,3 @@ export const STATUS_TEXT = {
   normal: 'Dalam rentang',
   above: 'Di atas p90',
 };
-
-/* ------------------------------------------------------------------ *
- * Trend across visits
- * ------------------------------------------------------------------ */
-
-// A single point inside p10–p90 tells you almost nothing. What obstetricians
-// actually read is the direction of travel between visits. A value can sit
-// "Dalam rentang" at every single visit while sliding from p72 to p16, and a
-// pass/fail check against the band cannot see that at all.
-export const DRIFT_STEP_THRESHOLD = 25; // percentile points between two visits
-export const DRIFT_TOTAL_THRESHOLD = 30; // percentile points across the series
-
-export const TREND_TEXT = {
-  stable: 'Stabil',
-  drifting_down: 'Turun antar kunjungan',
-  drifting_up: 'Naik antar kunjungan',
-  noisy: 'Naik-turun (kemungkinan variasi pengukuran)',
-  insufficient: 'Butuh minimal 2 pengukuran',
-};
-
-/**
- * Track one metric across every visit and describe how its percentile moves.
- *
- * `noisy` matters as much as `drifting_down`. A metric that swings both ways by
- * large amounts is telling you the measurement error in this dataset is wide —
- * which is context for how seriously to read a drift in any OTHER metric.
- * Femur length is the usual culprit: it is a straight bone and the easiest
- * thing to measure, so if FL is bouncing 60 percentile points between visits,
- * a 25-point move elsewhere is probably the same noise.
- */
-export function assessSeries(rows, metricKey, fetalSex = 'unknown') {
-  const points = (rows || [])
-    .filter(
-      (r) => r && r[metricKey] !== null && r[metricKey] !== undefined && r[metricKey] !== ''
-    )
-    .map((r) => assessMetric(metricKey, r.gestational_week, r[metricKey], fetalSex))
-    .filter((a) => a && a.percentile !== null)
-    .sort((a, b) => a.week - b.week);
-
-  const metric = METRICS[metricKey];
-  const base = {
-    key: metricKey,
-    label: metric ? metric.label : metricKey,
-    abbr: metric ? metric.abbr : metricKey,
-    points,
-    steps: [],
-    totalChange: null,
-    maxDrop: 0,
-    maxRise: 0,
-    trend: 'insufficient',
-    flagged: false,
-  };
-
-  if (points.length < 2) return base;
-
-  const steps = [];
-  for (let i = 1; i < points.length; i++) {
-    steps.push({
-      fromWeek: points[i - 1].week,
-      toWeek: points[i].week,
-      fromPercentile: points[i - 1].percentile,
-      toPercentile: points[i].percentile,
-      change: points[i].percentile - points[i - 1].percentile,
-    });
-  }
-
-  const changes = steps.map((s) => s.change);
-  const maxDrop = Math.min(0, ...changes);
-  const maxRise = Math.max(0, ...changes);
-  const totalChange = points[points.length - 1].percentile - points[0].percentile;
-
-  const bigDrop = Math.abs(maxDrop) >= DRIFT_STEP_THRESHOLD;
-  const bigRise = maxRise >= DRIFT_STEP_THRESHOLD;
-
-  let trend = 'stable';
-  if (bigDrop && bigRise) trend = 'noisy';
-  else if (bigDrop || totalChange <= -DRIFT_TOTAL_THRESHOLD) trend = 'drifting_down';
-  else if (bigRise || totalChange >= DRIFT_TOTAL_THRESHOLD) trend = 'drifting_up';
-
-  return {
-    ...base,
-    steps,
-    totalChange,
-    maxDrop,
-    maxRise,
-    trend,
-    // Only a one-way slide is worth surfacing. Two-way scatter is a measurement
-    // artefact, and flagging it would train you to ignore the flag.
-    flagged: trend === 'drifting_down' || trend === 'drifting_up',
-  };
-}
-
-/** Run assessSeries over every metric. */
-export function assessAllSeries(rows, fetalSex = 'unknown') {
-  return Object.keys(METRICS).map((key) => assessSeries(rows, key, fetalSex));
-}
-
-/* ------------------------------------------------------------------ *
- * Body proportion ratios
- * ------------------------------------------------------------------ */
-
-// WHO added the FL/HC ratio specifically as a screening tool for when fetal
-// body proportions are suspected to be out of range — it is the published
-// instrument for the question "is this head small relative to the rest of this
-// baby, or is this whole baby simply on the small side?". HC/AC is the standard
-// symmetry check and normally crosses 1.0 around weeks 34–36.
-//
-// IMPORTANT: the reference values below are DERIVED by dividing the WHO median
-// tables, not transcribed from the published ratio tables. The derived median
-// is close to but not identical to the published one, and there is deliberately
-// no p10/p90 band here, because dividing two medians does not give you the
-// spread of the ratio. Treat these as directional only. For a real percentile,
-// transcribe the published ratio tables — and read the 2021 correction first,
-// the two captions are swapped.
-export const RATIOS = {
-  hc_ac: {
-    label: 'HC / AC',
-    description: 'Simetri kepala vs badan. Normal melewati 1,0 di sekitar minggu 34–36.',
-    compute: (row) =>
-      row.head_circumference_mm && row.abdominal_circumference_mm
-        ? Number(row.head_circumference_mm) / Number(row.abdominal_circumference_mm)
-        : null,
-    referenceMedian: (week) => {
-      const hc = bandFrom(HEAD_CIRCUMFERENCE, week);
-      const ac = bandFrom(ABDOMINAL_CIRCUMFERENCE, week);
-      return hc && ac ? hc.median / ac.median : null;
-    },
-  },
-  fl_hc: {
-    label: 'FL / HC',
-    description:
-      'Alat skrining WHO untuk proporsi tubuh janin. Naik = kepala relatif kecil terhadap badan.',
-    compute: (row) =>
-      row.femur_length_mm && row.head_circumference_mm
-        ? Number(row.femur_length_mm) / Number(row.head_circumference_mm)
-        : null,
-    referenceMedian: (week) => {
-      const fl = bandFrom(FEMUR_LENGTH, week);
-      const hc = bandFrom(HEAD_CIRCUMFERENCE, week);
-      return fl && hc ? fl.median / hc.median : null;
-    },
-  },
-};
-
-/** Compute both ratios for one measurement row, against the derived reference. */
-export function assessRatios(row) {
-  const week = Number(row.gestational_week);
-  return Object.entries(RATIOS)
-    .map(([key, def]) => {
-      const value = def.compute(row);
-      const reference = def.referenceMedian(week);
-      if (value === null || reference === null || !Number.isFinite(value)) return null;
-      return {
-        key,
-        label: def.label,
-        description: def.description,
-        week,
-        value,
-        reference,
-        diffFromReference: ((value - reference) / reference) * 100,
-        derived: true, // reference computed from median tables, not published
-      };
-    })
-    .filter(Boolean);
-}
-
-/* ------------------------------------------------------------------ *
- * Summary
- * ------------------------------------------------------------------ */
-
-/**
- * One object with everything needed to describe the whole record: per-visit
- * assessments, per-metric trends, and the ratio track.
- *
- * Nothing here is a diagnosis. It is arithmetic against a chart built from ten
- * countries that did not include Indonesia. Bring the trend to the obstetrician
- * and let them read it.
- */
-export function summarise(rows, fetalSex = 'unknown') {
-  const sorted = (rows || []).slice().sort((a, b) => a.gestational_week - b.gestational_week);
-  const series = assessAllSeries(sorted, fetalSex);
-
-  return {
-    visits: sorted.length,
-    series,
-    flagged: series.filter((s) => s.flagged),
-    ratios: sorted.map((row) => ({
-      week: Number(row.gestational_week),
-      values: assessRatios(row),
-    })),
-    latest: sorted.length
-      ? {
-          week: Number(sorted[sorted.length - 1].gestational_week),
-          metrics: assessMeasurement(sorted[sorted.length - 1]),
-          ratios: assessRatios(sorted[sorted.length - 1]),
-        }
-      : null,
-  };
-}
